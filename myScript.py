@@ -1,12 +1,13 @@
 ######################################### PACKAGES ##############################################################
-from subprocess import check_call, call
+from subprocess import check_call, call, CalledProcessError
 from os.path import exists
 from os import chdir
-from sys import executable
+from sys import executable, modules
 from pkg_resources import require, DistributionNotFound, VersionConflict
 
 
 ######################################### METHODS ##########################################################################
+
 
 # Activate the virtual environment
 def call_activate():
@@ -37,32 +38,45 @@ def manage_and_activate_env():
 def check_and_install_package(package):
     try:
         require(package)
-        print(f'Package already installed.\n')
+        print(f'\nPackage already installed.\n')
     except DistributionNotFound:
-        print(f"The package {package} doesn't exist.\nInstalling package...\n")
+        print(f"\nThe package {package} doesn't exist.\nInstalling package...\n")
         check_call([executable, '-m', 'pip', 'install', package])
     except VersionConflict as vc:
         installed_version = vc.dist.version
         required_version = vc.req
-        print(f"A version's conflict detected:\n"
+        print(f"\nA version's conflict detected:\n"
               f"Version installed: {installed_version}"
               f"Version required: {required_version}"
-              "Trying to install the package required\n")
+               "Trying to install the package required\n")
         check_call([executable, '-m', 'pip', 'install', '--upgrade', package])
+    except CalledProcessError as cp:
+        print(f"\nAn error occurred: {cp.returncode}\n")
+        check_call(([executable, '-m', 'pip', 'install', '--upgrade', package]))
+        check_call([executable, '-m', 'pip', 'install', package])
+
 
 
 # Function to install all packages written in requirements.txt
-def check_and_install_packages(file):
+def check_and_install_packages(file, STANDARD_PACKAGE):
     with open(file, 'r') as packages:
         for package in packages.readlines():
-            check_and_install_package(package)
+            if package.strip() in STANDARD_PACKAGE:
+                print(f"Package {package.strip()} already installed!\n")
+            else:
+                check_and_install_package(package.strip())
 
     packages.close()
 
+def run():
+    STANDARD_PACKAGE = []
 
-######################################### MAIN ############################################################################
-if __name__ == '__main__':
     manage_and_activate_env()
+    for key in modules.keys():
+        STANDARD_PACKAGE.append(key.strip())
+    """for package in STANDARD_PACKAGE:
+        print(package)
+    breakpoint()"""
 
     while True:
         selection = input('1. Install an only package\n'
@@ -72,10 +86,17 @@ if __name__ == '__main__':
 
         if selection == '1':
             package = input('Enter the package which you want to install: ')
-            check_and_install_package(package)
+            if package in STANDARD_PACKAGE:
+                print('Package already installed!\n')
+            else:
+                check_and_install_package(package)
         elif selection == '2':
             file = input('Enter your file with the packages to install (requirements.txt): ')
-            check_and_install_packages(file)
+            check_and_install_packages(file, STANDARD_PACKAGE)
         else:
             break
 
+
+######################################### MAIN ############################################################################
+if __name__ == '__main__':
+    run()
