@@ -149,8 +149,17 @@ def upload_github():
         runSubprocess('git status', shell=True, check=True)
         print('\ngit add .\n')
         runSubprocess('git add .', shell=True, check=True)
-        commit = input('Enter commit message: ')
-        runSubprocess(f'git commit -m "{commit}"', shell=True, check=True)
+        commit_maked = ''
+        while commit_maked not in ['Y', 'y', 'N', 'n']:
+            commit_maked = input('Have you made your commit? [Y/N]')
+            
+            if commit_maked not in ['Y', 'y', 'N', 'n']:
+                print('\nInvalid option\n')
+        if commit_maked in ['Y', 'y']:
+            commit = input('Enter commit message: ')
+            print('\ncommit\n')
+            runSubprocess(f'git commit -m "{commit}"', shell=True, check=True)
+            
 
         print('\ngit branch\n')
         runSubprocess('git branch -M main', shell=True, check=True)
