@@ -155,7 +155,7 @@ def upload_github():
             
             if commit_maked not in ['Y', 'y', 'N', 'n']:
                 print('\nInvalid option\n')
-        if commit_maked in ['Y', 'y']:
+        if commit_maked in ['N', 'n']:
             commit = input('Enter commit message: ')
             print('\ncommit\n')
             runSubprocess(f'git commit -m "{commit}"', shell=True, check=True)
